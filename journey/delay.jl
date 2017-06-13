@@ -7,5 +7,7 @@
 # NOTICE: THIS IS JUST THE BEGINNING OF A CONVERSION OF THE ORIGINAL MATLAB SCRIPTS!
 # NOT FINALIZED!
 
+function delay_obj(jny::Vector{Int16}, q_Z::Array{Float64, 2}, U::Underground)
+end
 
 
