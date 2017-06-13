@@ -101,9 +101,10 @@
 
 type Underground
 
-  station_names::Array{String, 1}    
+  station_names::Array{String, 1}
   line_names::Array{String, 1}     
-  locations::Array{Int, 2}        
+  locations::Array{Int, 2}
+  station_zones::Array{Int, 1}
   station_pos::Matrix{Float64}
   only_connect::Array{Bool, 2}         
 
@@ -123,7 +124,9 @@ type Underground
   path_size::Array{Int16, 2}
   mintime_taken::Array{Int16, 2}
   adj::Array{Array{Int64}, 1}
-  
+  all_paths::Array{Vector{Vector{Int16}}}
+  all_paths_changes::Array{Vector{Vector{Int16}}}
+
   w::Array{Float64, 1} # Deprecated
   stay_prob::Vector{Float64}
   MIN_PROB::Float64

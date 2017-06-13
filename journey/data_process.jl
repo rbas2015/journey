@@ -14,6 +14,7 @@ function load_underground(PATH_PROJECT::String, u_params::UndergroundParams)
   line_names = Array{String}(readtable(PATH_STRUCTURE * "line_names.csv", header = false)[1]);
   locations = Array{Int16}(readtable(PATH_STRUCTURE * "locations.csv", header = false));
   only_connect = Array{Bool}(readtable(PATH_STRUCTURE * "only_connect.csv", header = false));
+  station_zones = Array{Int}(readtable(PATH_STRUCTURE * "zones.csv", header = false))[1];
 
   num_stations = length(station_names);
   num_outer_stations = num_stations; # Outer only, an alias for num_stations
@@ -107,14 +108,61 @@ function load_underground(PATH_PROJECT::String, u_params::UndergroundParams)
   println("Calculating route odds...");
   odds, stay_prob = build_navigation_odds(u_params, num_locations, num_stations, path_size, adj, locations);
 
+  # All paths
+
+  println("Loading pre selected paths...");
+  all_paths, all_paths_changes = load_all_paths(PATH_STRUCTURE, num_stations);
+
   ### Build and return object
   
-  U = Underground(station_names, line_names, locations, station_pos, only_connect,
+  U = Underground(station_names, line_names, locations, station_zones, station_pos, only_connect,
                   num_stations, num_outer_stations, num_all_stations, num_locations,
                   num_lines, num_dirlinks, num_adj, baseline_time, T,
                   allowances, paths, path_size, mintime_taken, adj,
+                  all_paths, all_paths_changes,
                   w, stay_prob, MIN_PROB, odds);
   return(U);
+
+end
+
+function load_all_paths(PATH_STRUCTURE::String, num_stations::Integer)
+  
+  f = open(PATH_STRUCTURE * "all_paths.txt");
+  lines = readlines(f);
+  close(f);
+
+  all_paths = Array{Vector{Vector{Int16}}}(num_stations, num_stations);
+  all_paths_changes = Array{Vector{Vector{Int16}}}(num_stations, num_stations);
+  count = 0;
+  for i = 1:num_stations
+    for j = 1:num_stations
+      if i == j continue; end
+      count += 1;
+      tokens = split(lines[count]);
+      num_paths = tokens[end];
+      all_paths[i, j] = Vector{Vector{Int16}}(num_paths);
+      for k = 1:num_paths;
+        count += 1;
+        tokens = split(lines[count]);
+        new_path = Vector{Int16}(length(tokens));
+        for w = 1:length(tokens)
+          new_path[w] = parse(Int16, tokens[w]);
+        end
+        all_paths[i, j] = new_path;
+        count += 1;
+        tokens = split(lines[count]);
+        if length(tokens) > 1 #Some change happened
+          new_changes = Vector{Int16}(length(tokens) - 1);
+          for w = 2:length(tokens)
+            new_changes[w - 1] = parse(Int16, tokens[w]);
+          end
+          all_paths_changes[i, j] = new_changes;
+        end
+      end
+    end
+  end
+
+  return(all_paths, all_paths_changes)
 
 end
 
